@@ -1,0 +1,101 @@
+// popup.js
+document.addEventListener('DOMContentLoaded', () => {
+  console.log('[Bluebook Citer] popup opened');
+
+  const longBox = document.getElementById('long-form');
+  const shortBox = document.getElementById('short-form');
+  const debugBox = document.getElementById('debug');
+  const generateBtn = document.getElementById('generate');
+  const copyLongBtn = document.getElementById('copy-long');
+  const copyShortBtn = document.getElementById('copy-short');
+
+  function formatLongForm(data) {
+    if (!data.caseName) return '';
+    let citation = `${data.caseName}`;
+    if (data.volume && data.reporter && data.page) {
+      citation += `, ${data.volume} ${data.reporter} ${data.page}`;
+      if (data.pinpoint) citation += `, ${data.pinpoint}`;
+    }
+    if (data.court || data.year) {
+      citation += ` (${[data.court, data.year].filter(Boolean).join(' ')})`;
+    }
+    return citation;
+  }
+
+  function formatShortForm(data) {
+    if (!data.caseName) return '';
+    let citation = `${data.caseName}`;
+    if (data.volume && data.reporter && data.page) {
+      citation += `, ${data.volume} ${data.reporter} ${data.page}`;
+    }
+    return citation;
+  }
+
+  function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(() => {
+      alert('Copied to clipboard!');
+    }).catch(err => {
+      alert('Copy failed: ' + err);
+    });
+  }
+
+  function highlightMissingFields(data) {
+    const missing = [];
+    if (!data.caseName) missing.push('caseName');
+    if (!data.volume) missing.push('volume');
+    if (!data.reporter) missing.push('reporter');
+    if (!data.page) missing.push('page');
+    if (!data.court) missing.push('court');
+    if (!data.year) missing.push('year');
+    if (!data.docket) missing.push('docket');
+
+    if (missing.length) {
+      debugBox.style.color = 'red';
+      debugBox.textContent += `\n\n⚠ Missing fields: ${missing.join(', ')}`;
+    } else {
+      debugBox.style.color = '#555';
+    }
+  }
+
+  function generateCitation() {
+    console.log('[Bluebook Citer] generateCitation called');
+
+    chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
+      if (!tabs[0]?.id) {
+        console.warn('[Bluebook Citer] no active tab found');
+        return;
+      }
+      console.log('[Bluebook Citer] sending extractCitation to tab', tabs[0].id);
+
+      chrome.tabs.sendMessage(tabs[0].id, { type: 'extractCitation' }, response => {
+        console.log('[Bluebook Citer] got response from content script:', response);
+
+        if (response && response.ok) {
+          const data = response.data;
+          longBox.textContent = formatLongForm(data);
+          shortBox.textContent = formatShortForm(data);
+          debugBox.textContent = JSON.stringify(data, null, 2);
+          highlightMissingFields(data);
+        } else {
+          longBox.textContent = '';
+          shortBox.textContent = '';
+          debugBox.style.color = 'red';
+          debugBox.textContent = response?.error || 'No data extracted';
+        }
+      });
+    });
+  }
+
+  // -------------------------------
+  // Auto-generate on popup open
+  // -------------------------------
+  generateCitation();
+
+  // Manual generate button
+  if (generateBtn) {
+    generateBtn.addEventListener('click', generateCitation);
+  }
+
+  copyLongBtn.addEventListener('click', () => copyToClipboard(longBox.textContent));
+  copyShortBtn.addEventListener('click', () => copyToClipboard(shortBox.textContent));
+});

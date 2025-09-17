@@ -1,0 +1,24 @@
+.debug {
+  margin-top: 12px;
+  border-top: 1px solid #eee;
+  padding-top: 8px;
+}
+
+.debug label {
+  display: block;
+  font-size: 11px;
+  color: #444;
+  margin-bottom: 4px;
+}
+
+#debugOutput {
+  max-height: 120px;
+  overflow-y: auto;
+  background: #f9f9f9;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 6px;
+  font-family: monospace;
+  font-size: 11px;
+  white-space: pre-wrap;
+}
