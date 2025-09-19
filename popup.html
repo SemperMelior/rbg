@@ -1,66 +1,75 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>Bluebook Citer</title>
-    <style>
-      body {
-        font-family: Arial, sans-serif;
-        padding: 10px;
-        width: 350px;
-      }
-      .citation-box {
-        background: #f9f9f9;
-        border: 1px solid #ccc;
-        padding: 8px;
-        margin-bottom: 6px;
-        font-size: 14px;
-        border-radius: 6px;
-        white-space: pre-wrap;
-        word-break: break-word;
-      }
-      button {
-        margin-right: 8px;
-        margin-bottom: 12px;
-        padding: 4px 10px;
-        border-radius: 4px;
-        border: none;
-        background: #4285f4;
-        color: white;
-        cursor: pointer;
-      }
-      button:hover {
-        background: #3367d6;
-      }
-      pre {
-        font-size: 11px;
-        color: #555;
-        max-height: 150px;
-        overflow: auto;
-      }
-    </style>
-  </head>
-  <body>
-    <h3>Bluebook Citation</h3>
+<head>
+  <title>Ruthless Bluebook Generator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      width: 350px;
+      padding: 10px;
+    }
+    h1 {
+      font-size: 18px;
+      margin-bottom: 8px;
+    }
+    h2 {
+      font-size: 14px;
+      margin-top: 15px;
+      margin-bottom: 5px;
+    }
+    p {
+      margin: 2px 0;
+      font-size: 13px;
+    }
+    .citation-box {
+      border: 1px solid #ccc;
+      padding: 6px;
+      margin: 5px 0;
+      background: #f9f9f9;
+      font-size: 13px;
+      word-wrap: break-word;
+    }
+    button {
+      margin-top: 5px;
+      margin-right: 5px;
+      padding: 4px 8px;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Ruthless Bluebook Generator</h1>
 
-    <div>
-      <button id="generate">Generate Citation</button>
-    </div>
+  <button id="generate">Generate Citation</button>
 
-    <div>
-      <strong>Long form:</strong>
-      <div id="long-form" class="citation-box"></div>
-      <button id="copy-long">Copy Long</button>
-    </div>
+  <h2>Extracted Data</h2>
+<div id="extractedData">
+  <p><strong>Case Name:</strong> <input id="caseName" type="text"></p>
+  <p><strong>Volume:</strong> <input id="volume" type="text"></p>
+  <p><strong>Reporter:</strong> <input id="reporter" type="text"></p>
+  <p><strong>Page:</strong> <input id="page" type="text"></p>
+  <p><strong>Pinpoint:</strong> <input id="pinpoint" type="text"></p>
+  <p><strong>Court:</strong> <input id="court" type="text"></p>
+  <p><strong>Year:</strong> <input id="year" type="text"></p>
+  <p><strong>Docket:</strong> <input id="docket" type="text"></p>
+  <p><strong>Source URL:</strong> <input id="sourceUrl" type="text"></p>
+</div>
 
-    <div>
-      <strong>Short form:</strong>
-      <div id="short-form" class="citation-box"></div>
-      <button id="copy-short">Copy Short</button>
-    </div>
 
-    <h4>Debug data</h4>
-    <pre id="debug"></pre>
+  <h2>Citations</h2>
+  <div>
+    <p><strong>Long Form:</strong></p>
+    <div class="citation-box" id="longForm"></div>
+    <button id="copyLong">Copy Long Form</button>
 
-    <script src="popup.js"></script>
-  </body>
+    <p><strong>Short Form:</strong></p>
+    <div class="citation-box" id="shortForm"></div>
+    <button id="copyShort">Copy Short Form</button>
+  </div>
+
+  <h2>Debug</h2>
+  <pre id="debugLog" style="white-space: pre-wrap; font-size: 11px; border:1px solid #ccc; padding:4px; background:#fafafa; max-height:150px; overflow:auto;"></pre>
+
+  <script src="popup.js"></script>
+</body>
 </html>
