@@ -5,22 +5,23 @@ document.addEventListener('DOMContentLoaded', () => {
   const longBox = document.getElementById('longForm');
   const shortBox = document.getElementById('shortForm');
   const debugBox = document.getElementById('debugLog');
-  const generateBtn = document.getElementById('generate');
   const copyLongBtn = document.getElementById('copyLong');
   const copyShortBtn = document.getElementById('copyShort');
+  const generateBtn = document.getElementById('generate');
+
+  // All editable fields
+  const fieldIds = [
+    'caseName', 'volume', 'reporter', 'page',
+    'pinpoint', 'court', 'year', 'docket', 'sourceUrl'
+  ];
 
   function getFormData() {
-    return {
-      caseName: document.getElementById('caseName').value.trim(),
-      volume: document.getElementById('volume').value.trim(),
-      reporter: document.getElementById('reporter').value.trim(),
-      page: document.getElementById('page').value.trim(),
-      pinpoint: document.getElementById('pinpoint').value.trim(),
-      court: document.getElementById('court').value.trim(),
-      year: document.getElementById('year').value.trim(),
-      docket: document.getElementById('docket').value.trim(),
-      sourceUrl: document.getElementById('sourceUrl').value.trim(),
-    };
+    const data = {};
+    fieldIds.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) data[id] = el.value || '';
+    });
+    return data;
   }
 
   function formatLongForm(data) {
@@ -33,18 +34,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (data.court || data.year) {
       citation += ` (${[data.court, data.year].filter(Boolean).join(' ')})`;
     }
-    if (data.docket) {
-      citation += ` (No. ${data.docket})`;
-    }
     return citation;
   }
 
   function formatShortForm(data) {
     if (!data.caseName) return '';
-    const shortName = data.caseName.split(' v. ')[0];
-    let citation = `${shortName}`;
-    if (data.reporter && (data.pinpoint || data.page)) {
-      citation += `, ${data.reporter} at ${data.pinpoint || data.page}`;
+    let citation = `${data.caseName}`;
+    if (data.volume && data.reporter && data.page) {
+      citation += `, ${data.volume} ${data.reporter} ${data.page}`;
     }
     return citation;
   }
@@ -75,38 +72,37 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  function generateCitation() {
-    const editedData = getFormData();
-    longBox.textContent = formatLongForm(editedData);
-    shortBox.textContent = formatShortForm(editedData);
-    debugBox.textContent = JSON.stringify(editedData, null, 2);
-    highlightMissingFields(editedData);
+  function updateCitationsFromForm() {
+    const data = getFormData();
+    longBox.textContent = formatLongForm(data);
+    shortBox.textContent = formatShortForm(data);
+    debugBox.textContent = JSON.stringify(data, null, 2);
+    highlightMissingFields(data);
   }
 
-  function fetchAndPopulate() {
+  function generateCitation() {
+    console.log('[Bluebook Citer] generateCitation called');
+
     chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
       if (!tabs[0]?.id) {
         console.warn('[Bluebook Citer] no active tab found');
         return;
       }
+      console.log('[Bluebook Citer] sending extractCitation to tab', tabs[0].id);
 
       chrome.tabs.sendMessage(tabs[0].id, { type: 'extractCitation' }, response => {
+        console.log('[Bluebook Citer] got response from content script:', response);
+
         if (response && response.ok) {
           const data = response.data;
 
-          // Populate inputs
-          document.getElementById('caseName').value = data.caseName || '';
-          document.getElementById('volume').value = data.volume || '';
-          document.getElementById('reporter').value = data.reporter || '';
-          document.getElementById('page').value = data.page || '';
-          document.getElementById('pinpoint').value = data.pinpoint || '';
-          document.getElementById('court').value = data.court || '';
-          document.getElementById('year').value = data.year || '';
-          document.getElementById('docket').value = data.docket || '';
-          document.getElementById('sourceUrl').value = data.sourceUrl || '';
+          // Fill extracted fields
+          fieldIds.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.value = data[id] || '';
+          });
 
-          // Generate citations
-          generateCitation();
+          updateCitationsFromForm();
         } else {
           longBox.textContent = '';
           shortBox.textContent = '';
@@ -117,24 +113,23 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Run extraction on popup open
-  fetchAndPopulate();
+  // -------------------------------
+  // Auto-generate on popup open
+  // -------------------------------
+  generateCitation();
 
-  // Manual re-generate button
+  // Manual generate button
   if (generateBtn) {
     generateBtn.addEventListener('click', generateCitation);
   }
 
-  // Auto-update when typing in any field
-  const fields = [
-    'caseName', 'volume', 'reporter', 'page', 'pinpoint',
-    'court', 'year', 'docket', 'sourceUrl'
-  ];
-  fields.forEach(id => {
-    document.getElementById(id).addEventListener('input', generateCitation);
-  });
-
   // Copy buttons
   copyLongBtn.addEventListener('click', () => copyToClipboard(longBox.textContent));
   copyShortBtn.addEventListener('click', () => copyToClipboard(shortBox.textContent));
+
+  // Auto-update as user edits fields
+  fieldIds.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('input', updateCitationsFromForm);
+  });
 });
