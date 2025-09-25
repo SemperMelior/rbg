@@ -43,6 +43,24 @@ function parseCitationString(raw) {
   return null;
 }
 
+function normalizeCourtName(raw) {
+  // normalize whitespace (including NBSP), trim ends
+  let court = String(raw || "").replace(/\u00A0/g, " ").replace(/\s+/g, " ").trim();
+
+  // drop trailing county info like ", Adams County."
+  court = court.replace(/,\s*[^,]*County\.?$/i, "");
+
+  // single-pass normalize:
+  // - handles ", Fourth Appellate District"  → ", Fourth District"
+  // - handles ", Fourth District"            → ", Fourth District" (no change)
+  // - also accepts "Dist." abbreviation
+  const districtPattern = /,\s*([A-Za-z]+)\s+(?:Appellate\s+)?Dist(?:rict)?\b\.?/i;
+  court = court.replace(districtPattern, (_, word) => `, ${word} District`);
+
+  return court;
+}
+
+
 // -------------------------------
 // Lexis Extractor
 // -------------------------------
@@ -66,8 +84,8 @@ function extractFromLexis() {
 
       if (m) {
         volume = m[1];
-        reporter = m[2];
-        page = m[3];
+        reporter = m[2] || "";
+        page = m[3] || "";
         pinpoint = m[4] || "";
       } else {
         const fallbackParsed = parseCitationString(raw);
@@ -76,6 +94,12 @@ function extractFromLexis() {
           reporter = fallbackParsed.reporter || reporter;
           page = fallbackParsed.page || page;
           pinpoint = fallbackParsed.pinpoint || pinpoint;
+        } else {
+          raw = raw.replace(/\*/g, "").replace(/\u00A0/g, " ").trim();
+          reporter = raw;
+          volume = "";
+          page = "";
+          pinpoint = "";
         }
       }
     }
@@ -94,19 +118,16 @@ function extractFromLexis() {
       if (m) year = m[0];
     } else {
       console.log("[BLuebook Citer] Massaging...")
-      txt = txt.replace(/,\s*[^,]*County\.?$/i, ""); // remove county
-      txt = txt.replace(/^[,.\s]+|[,.\s]+$/g, "");   // trim punctuation
+      txt = normalizeCourtName(txt);
       console.log("[Bluebook Citer] 1 Edited court:", txt);
       // Handle both "Fourth Appellate District" and "Fourth District"
-      court = txt.replace(/,\s*[^,]*Appellate\.?$/i, "");
-      console.log("[Bluebook Citer] Edited court:", court);
       if (courtMap[txt]) {
         console.log("[Bluebook Citer] Made it here.")
         court = courtMap[txt];
         // fall back
       } else {
         console.log("[Bluebook Citer] Court not found in courtMap:", txt);
-
+        court = txt
       }
     }
   });
