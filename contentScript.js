@@ -228,15 +228,17 @@ courtMapLoaded.then(() => {
       runExtraction(extractWestlaw);
     }
 
-    if (latestData.caseName && (latestData.reporter || latestData.court)) {
-      observer.disconnect();
-      console.log("[Bluebook Citer] Observer disconnected (sufficient data found)");
-    }
+    // if (latestData.caseName && (latestData.reporter || latestData.court)) {
+    //   observer.disconnect();
+    //   console.log("[Bluebook Citer] Observer disconnected (sufficient data found)");
+    // }
   });
 
   observer.observe(document.documentElement || document.body, {
     childList: true,
-    subtree: true
+    subtree: true,
+    attributes: true,
+    attributeFilter: ["class"]
   });
 });
 
