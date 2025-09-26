@@ -127,7 +127,9 @@ function extractFromLexis() {
         // fall back
       } else {
         console.log("[Bluebook Citer] Court not found in courtMap:", txt);
-        court = txt
+        if (!court) {
+          court = txt
+        }
       }
     }
   });

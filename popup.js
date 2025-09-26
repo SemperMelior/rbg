@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // All editable fields
   const fieldIds = [
-    'caseName', 'volume', 'reporter', 'page',
+    'caseName', 'shortCaseName', 'volume', 'reporter', 'page',
     'pinpoint', 'court', 'year', 'docket', 'sourceUrl'
   ];
 
@@ -39,26 +39,12 @@ function abbreviateCaseName(fullCaseName) {
   firstParty = firstParty.replace(/\b(Inc|Incorporated|Corp|Corporation|LLC|L\.L\.C\.|Ltd|Co)\.?$/i, "").trim();
 
   // Skip common government entities
-  if (/^(United States|State of|People of|Commonwealth of|Ohio|Texas|Florida|California|[A-Z][a-z]+ Dep’t|[A-Z][a-z]+ Dept\.|Department of)/i.test(firstParty)) {
+  if (/^(United States|State of|People of|People|Commonwealth of|Ohio|Texas|Florida|California|[A-Z][a-z]+ Dep’t|[A-Z][a-z]+ Dept\.|Department of)/i.test(firstParty)) {
     // Fallback: just use firstParty anyway if we can't find better
     return parts[1] ? parts[1].split(/\s+/)[0] : firstParty;
   }
 
   return firstParty;
-}
-
-// Format long-form citation with italics
-function formatLongForm(data) {
-  if (!data.caseName) return "";
-  let citation = `<i>${data.caseName}</i>`;
-  if (data.volume && data.reporter && data.page) {
-    citation += `, ${data.volume} ${data.reporter} ${data.page}`;
-    if (data.pinpoint) citation += `, ${data.pinpoint}`;
-  }
-  if (data.court || data.year) {
-    citation += ` (${[data.court, data.year].filter(Boolean).join(" ")})`;
-  }
-  return citation;
 }
 
 function formatLongForm(data) {
@@ -78,23 +64,36 @@ function formatLongForm(data) {
 
 function formatShortForm(data) {
   if (!data.caseName) return '';
-  let citation = `<i>${abbreviateCaseName(data.caseName)}</i>`;
+  const shortName = data.shortCaseName && data.shortCaseName.trim()
+    ? data.shortCaseName.trim()
+    : abbreviateCaseName(data.caseName);
+  let citation = `<i>${shortName}</i>`;
   if (data.volume && data.reporter && data.page) {
     citation += `, ${data.volume} ${data.reporter} ${data.page}`;
   } else if (data.reporter) {
     citation += `, ${data.reporter}`;
   }
-  if (data.pinpoint) { // todo: add override for public-domain states like OH, paragraph symbol
+  if (data.pinpoint) { // TODO: add override for public-domain states like OH, paragraph symbol
     citation += `, at ${data.pinpoint}`;
   }
   return citation;
 }
 
-function copyToClipboard(text) {
+function copyToClipboard(text, msgEl) {
   navigator.clipboard.writeText(text).then(() => {
-    alert('Copied to clipboard!');
+    if (msgEl) {
+      msgEl.textContent = "Copied!";
+      msgEl.style.display = "inline";
+      setTimeout(() => { msgEl.style.display = "none"; }, 1500);
+    }
   }).catch(err => {
-    alert('Copy failed: ' + err);
+    console.error("[Bluebook Citer] Copy failed:", err);
+    if (msgEl) {
+      msgEl.textContent = "Copy failed";
+      msgEl.style.display = "inline";
+      msgEl.style.color = "red";
+      setTimeout(() => { msgEl.style.display = "none"; }, 2500);
+    }
   });
 }
 
@@ -143,7 +142,16 @@ function generateCitation() {
         // Fill extracted fields
         fieldIds.forEach(id => {
           let el = document.getElementById(id);
-          if (el) el.value = data[id] || '';
+          if (el) {
+            if (id === 'shortCaseName') {
+              // Auto-fill with default short name if none set
+              el.value = data.shortCaseName && data.shortCaseName.trim()
+                ? data.shortCaseName.trim()
+                : abbreviateCaseName(data.caseName || "");
+            } else {
+              el.value = data[id] || '';
+            }
+          }
         });
 
         updateCitationsFromForm();
@@ -168,8 +176,16 @@ if (generateBtn) {
 }
 
 // Copy buttons
-copyLongBtn.addEventListener('click', () => copyToClipboard(longBox.textContent));
-copyShortBtn.addEventListener('click', () => copyToClipboard(shortBox.textContent));
+const copyLongMsg = document.getElementById('copyLongMsg');
+const copyShortMsg = document.getElementById('copyShortMsg');
+
+copyLongBtn.addEventListener('click', () => 
+  copyToClipboard(longBox.textContent || longBox.innerText, copyLongMsg)
+);
+
+copyShortBtn.addEventListener('click', () => 
+  copyToClipboard(shortBox.textContent || shortBox.innerText, copyShortMsg)
+);
 
 // Auto-update as user edits fields
 fieldIds.forEach(id => {
