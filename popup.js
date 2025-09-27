@@ -95,17 +95,16 @@ document.addEventListener('DOMContentLoaded', () => {
   function copyToClipboard(text, msgEl) {
     navigator.clipboard.writeText(text).then(() => {
       if (msgEl) {
-        msgEl.textContent = "Copied!";
         msgEl.style.display = "inline";
         setTimeout(() => { msgEl.style.display = "none"; }, 1500);
       }
     }).catch(err => {
       console.error("[Bluebook Citer] Copy failed:", err);
       if (msgEl) {
-        msgEl.textContent = "Copy failed";
-        msgEl.style.display = "inline";
+        msgEl.textContent = "✖"; // red X if failed
         msgEl.style.color = "red";
-        setTimeout(() => { msgEl.style.display = "none"; }, 2500);
+        msgEl.style.display = "inline";
+        setTimeout(() => { msgEl.style.display = "none"; msgEl.textContent = "✔"; msgEl.style.color = "green"; }, 2000);
       }
     });
   }
@@ -139,6 +138,13 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function generateCitation() {
+    const btn = document.getElementById('generate');
+    if (btn) {
+      btn.classList.remove('spin'); // reset in case it’s mid-spin
+      void btn.offsetWidth;         // trick to reflow & restart animation
+      btn.classList.add('spin');    // trigger one-time spin
+    }
+
     chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
       if (!tabs[0]?.id) return;
       chrome.tabs.sendMessage(tabs[0].id, { type: 'extractCitation' }, response => {
@@ -188,4 +194,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const el = document.getElementById(id);
     if (el) el.addEventListener('input', updateCitationsFromForm);
   });
+
+  // Collapsible toggle for Extracted Data
+  const toggleBtn = document.getElementById('toggleFields');
+  if (toggleBtn) {
+    toggleBtn.addEventListener('click', () => {
+      const dataSection = document.getElementById('extractedData');
+      dataSection.classList.toggle('collapsed');
+      toggleBtn.textContent = dataSection.classList.contains('collapsed') ? '>' : 'v';
+    });
+  }
 });
