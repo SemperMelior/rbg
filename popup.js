@@ -220,7 +220,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (bugBtn) {
     bugBtn.addEventListener('click', () => {
       const description = document.getElementById('bugDescription').value.trim();
-      const debugInfo = debugBox.textContent || "(no debug info)";
+      const debugInfo = debugBox ? debugBox.textContent : "(no debug info)";
       const sourceUrl = document.getElementById('sourceUrl')?.value || "";
 
       const subject = encodeURIComponent("Bluebook Citer Bug Report");
