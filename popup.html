@@ -1,70 +1,225 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta charset="UTF-8">
   <title>Ruthless Bluebook Generator</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      width: 350px;
-      padding: 10px;
+      font-family: "Segoe UI", Roboto, Arial, sans-serif;
+      width: 380px;
+      padding: 16px;
+      background: #f5f7fa;
+      color: #222;
     }
-    h1 { font-size: 18px; margin-bottom: 8px; }
-    h2 { font-size: 14px; margin-top: 15px; margin-bottom: 5px; }
-    p  { margin: 2px 0; font-size: 13px; }
-    .hint { color:#666; font-size:11px; margin-left:6px; }
+    h1 {
+      font-size: 18px;
+      margin-bottom: 12px;
+      color: #d52b1e;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    h1 .refresh-btn {
+      background: none;
+      border: none;
+      padding: 4px;
+      cursor: pointer;
+      border-radius: 50%;
+      transition: background 0.2s;
+    }
+    h1 .refresh-btn:hover { background: rgba(0,0,0,0.06); }
+    h1 .refresh-btn svg { width: 18px; height: 18px; stroke: black; }
+
+    h2 {
+      font-size: 14px;
+      margin-top: 20px;
+      margin-bottom: 8px;
+      color: #444;
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 2px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .section {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 10px 12px;
+      margin-bottom: 14px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      margin: 8px 0 4px;
+      color: #333;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 6px 8px;
+      font-size: 13px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      box-sizing: border-box;
+      transition: border-color 0.2s;
+    }
+    input[type="text"]:focus {
+      border-color: #d52b1e;
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(213,43,30,0.15);
+    }
+
     .citation-box {
       border: 1px solid #ccc;
-      padding: 6px;
-      margin: 5px 0;
-      background: #f9f9f9;
+      background: #fafafa;
+      border-radius: 6px;
+      padding: 8px;
+      margin: 6px 0;
       font-size: 13px;
-      word-wrap: break-word;
+      white-space: normal;
     }
-    button { margin-top: 5px; margin-right: 5px; padding: 4px 8px; font-size: 12px; }
+
+    button {
+      background: #d52b1e;
+      border: none;
+      color: white;
+      padding: 6px 10px;
+      font-size: 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    button:hover { background: #b82419; }
+    .copy-msg { font-size: 11px; color: green; margin-left: 6px; display: none; }
+
+    /* Collapsible toggle */
+    .toggle-btn {
+      background: none;
+      border: none;
+      font-size: 12px;
+      cursor: pointer;
+      margin-left: 6px;
+      color: #555;
+    }
+    .toggle-btn:hover { color: #000; }
+    #extractedData.collapsed { display: none; }
+
+    .citation-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .copy-controls {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .icon-btn {
+      background: none;
+      border: none;
+      padding: 4px;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: background 0.2s;
+    }
+    .icon-btn:hover { background: rgba(0,0,0,0.06); }
+    .icon-btn svg { width: 16px; height: 16px; stroke: black; }
+
+    .copy-check {
+      font-size: 14px;
+      color: green;
+      display: none;
+    }
+
+
+
+    /* Scrollable field container */
+    #extractedData {
+      max-height: 220px;
+      overflow-y: auto;
+    }
+
+    /* Spin animation */
+    @keyframes spin-once {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .refresh-btn.spin svg { animation: spin-once 0.6s ease-out 1; }
   </style>
 </head>
 <body>
-  <h1>Ruthless Bluebook Generator</h1>
-
-  <button id="generate">Generate Citation</button>
-
-  <h2>Extracted Data</h2>
-  <div id="extractedData">
-    <p><strong>Case Name:</strong> <input id="caseName" type="text"></p>
-    <p><strong>Shortened Case Name:</strong> <input id="shortCaseName" type="text"></p>
-
-    <p><strong>Volume:</strong> <input id="volume" type="text"></p>
-    <p><strong>Reporter:</strong> <input id="reporter" type="text"></p>
-    <p><strong>Page / ID:</strong> <input id="page" type="text"></p>
-    <p><strong>Pinpoint:</strong> <input id="pinpoint" type="text"></p>
-
-    <p><strong>Court:</strong> <input id="court" type="text"></p>
-    <p><strong>Year:</strong> <input id="year" type="text"></p>
-
-    <p>
-      <strong>Full Date:</strong> <input id="fullDate" type="text" placeholder="e.g., Oct. 11, 2023">
-      <span class="hint">(used in parenthetical for unreported cases)</span>
-    </p>
-
-    <p><strong>Docket:</strong> <input id="docket" type="text"></p>
-    <p><strong>Source URL:</strong> <input id="sourceUrl" type="text"></p>
-  </div>
+  <h1>
+    Ruthless Bluebook Generator
+    <button id="generate" class="refresh-btn" title="Refresh Citation">
+      <svg viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="23 4 23 10 17 10"></polyline>
+        <polyline points="1 20 1 14 7 14"></polyline>
+        <path d="M3.51 9a9 9 0 0114.13-3.36L23 10M1 14l5.36 5.36A9 9 0 0020.49 15"></path>
+      </svg>
+    </button>
+  </h1>
 
   <h2>Citations</h2>
-  <div>
-    <p><strong>Long Form:</strong></p>
+  <div class="section">
+    <div class="citation-row">
+      <label>Long Form</label>
+      <div class="copy-controls">
+        <button id="copyLong" class="icon-btn" title="Copy Long Form">
+          <!-- two-squares copy icon -->
+          <svg viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+          </svg>
+        </button>
+        <span id="copyLongMsg" class="copy-check">✔</span>
+      </div>
+    </div>
     <div class="citation-box" id="longForm"></div>
-    <button id="copyLong">Copy Long Form</button>
-    <span id="copyLongMsg" class="copy-msg"></span>
 
-    <p><strong>Short Form:</strong></p>
+    <div class="citation-row" style="margin-top:10px;">
+      <label>Short Form</label>
+      <div class="copy-controls">
+        <button id="copyShort" class="icon-btn" title="Copy Short Form">
+          <!-- two-squares copy icon -->
+          <svg viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+          </svg>
+        </button>
+        <span id="copyShortMsg" class="copy-check">✔</span>
+      </div>
+    </div>
     <div class="citation-box" id="shortForm"></div>
-    <button id="copyShort">Copy Short Form</button>
-    <span id="copyShortMsg" class="copy-msg"></span>
   </div>
 
-  <h2>Debug</h2>
-  <pre id="debugLog" style="white-space: pre-wrap; font-size: 11px; border:1px solid #ccc; padding:4px; background:#fafafa; max-height:150px; overflow:auto;"></pre>
+
+
+  <h2>
+    Extracted Data
+    <button id="toggleFields" class="toggle-btn">▼</button>
+  </h2>
+  <div class="section" id="extractedData">
+    <label>Case Name <input id="caseName" type="text"></label>
+    <label>Shortened Case Name <input id="shortCaseName" type="text"></label>
+    <label>Volume <input id="volume" type="text"></label>
+    <label>Reporter <input id="reporter" type="text"></label>
+    <label>Page / ID <input id="page" type="text"></label>
+    <label>Pinpoint <input id="pinpoint" type="text"></label>
+    <label>Court <input id="court" type="text"></label>
+    <label>Year <input id="year" type="text"></label>
+    <label>Full Date <input id="fullDate" type="text" placeholder="e.g., Oct. 11, 2023"></label>
+    <label>Docket <input id="docket" type="text"></label>
+    <label>Source URL <input id="sourceUrl" type="text"></label>
+  </div>
 
   <script src="popup.js"></script>
 </body>
