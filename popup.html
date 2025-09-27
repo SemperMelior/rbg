@@ -107,6 +107,7 @@
     }
     .toggle-btn:hover { color: #000; }
     #extractedData.collapsed { display: none; }
+    #bugSection.collapsed { display: none; }
 
     .citation-row {
       display: flex;
@@ -137,7 +138,11 @@
       display: none;
     }
 
-
+    .bug-check {
+      font-size: 14px;
+      color: green;
+      display: none;
+    }
 
     /* Scrollable field container */
     #extractedData {
@@ -205,9 +210,9 @@
 
   <h2>
     Extracted Data
-    <button id="toggleFields" class="toggle-btn">▼</button>
+    <button id="toggleFields" class="toggle-btn">▶</button>
   </h2>
-  <div class="section" id="extractedData">
+  <div class="section collapsed" id="extractedData">
     <label>Case Name <input id="caseName" type="text"></label>
     <label>Shortened Case Name <input id="shortCaseName" type="text"></label>
     <label>Volume <input id="volume" type="text"></label>
@@ -222,5 +227,21 @@
   </div>
 
   <script src="popup.js"></script>
+  <h2>
+    Report a Bug
+    <button id="toggleBug" class="toggle-btn">▶</button>
+  </h2>
+  <div class="section collapsed" id="bugSection">
+    <label for="bugDescription">Describe the problem:</label>
+    <textarea id="bugDescription" rows="3" placeholder="Brief description..." 
+              style="width:100%; padding:6px; font-size:13px; border:1px solid #ccc; border-radius:6px;"></textarea>
+    <div style="margin-top:8px; display:flex; align-items:center; gap:8px;">
+      <button id="sendBugReport">Send Bug Report</button>
+      <span id="bugSentMsg" class="bug-check">✔</span>
+    </div>
+
+  </div>
+
+
 </body>
 </html>
