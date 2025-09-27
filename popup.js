@@ -204,4 +204,49 @@ document.addEventListener('DOMContentLoaded', () => {
       toggleBtn.textContent = dataSection.classList.contains('collapsed') ? '▶' : '▼';
     });
   }
+
+  // Collapsible toggle for Bug Report section
+  const toggleBugBtn = document.getElementById('toggleBug');
+  if (toggleBugBtn) {
+    toggleBugBtn.addEventListener('click', () => {
+      const bugSection = document.getElementById('bugSection');
+      bugSection.classList.toggle('collapsed');
+      toggleBugBtn.textContent = bugSection.classList.contains('collapsed') ? '▶' : '▼';
+    });
+  }
+
+  // Bug report button with green checkmark message
+  const bugBtn = document.getElementById('sendBugReport');
+  if (bugBtn) {
+    bugBtn.addEventListener('click', () => {
+      const description = document.getElementById('bugDescription').value.trim();
+      const debugInfo = debugBox.textContent || "(no debug info)";
+      const sourceUrl = document.getElementById('sourceUrl')?.value || "";
+
+      const subject = encodeURIComponent("Bluebook Citer Bug Report");
+      const body = encodeURIComponent(
+  `User description:
+  ${description}
+
+  Source URL:
+  ${sourceUrl}
+
+  Debug Info (expand if needed):
+  -------------------------------
+  ${debugInfo}`
+      );
+
+      // ✅ Show green checkmark immediately
+      const sentMsg = document.getElementById('bugSentMsg');
+      if (sentMsg) {
+        sentMsg.style.display = "inline";
+        setTimeout(() => { sentMsg.style.display = "none"; }, 2000);
+      }
+
+      // ✅ Open mailto in a new tab (popup stays alive)
+      chrome.tabs.create({
+        url: `mailto:ian.holmes@law.gwu.edu?subject=${subject}&body=${body}`
+      });
+    });
+  }
 });
