@@ -201,7 +201,7 @@ document.addEventListener('DOMContentLoaded', () => {
     toggleBtn.addEventListener('click', () => {
       const dataSection = document.getElementById('extractedData');
       dataSection.classList.toggle('collapsed');
-      toggleBtn.textContent = dataSection.classList.contains('collapsed') ? '>' : 'v';
+      toggleBtn.textContent = dataSection.classList.contains('collapsed') ? '▶' : '▼';
     });
   }
 });
