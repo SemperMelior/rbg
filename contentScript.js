@@ -40,13 +40,13 @@ function findFullDateFallback(root = document) {
   for (const el of candidates) {
     const t = (el.innerText || el.textContent || "").trim();
     const m = t && t.match(re);
-    if (m) return m[0];
+    if (m) return normalizeFullDate(m[0]);
   }
 
   // As a last resort, scan a limited slice of the page text
   const bodyText = (document.body.innerText || "").slice(0, 20000); // cap for perf
   const m = bodyText.match(re);
-  return m ? m[0] : "";
+  return m ? normalizeFullDate(m[0]) : "";
 }
 
 
@@ -77,6 +77,29 @@ function normalizeDocket(txt) {
   return txt
     .replace(/^(Case\s+No\.?|No\.)\s*/i, "No. ")
     .replace(/\.$/, "");
+}
+
+function normalizeFullDate(raw) {
+  if (!raw) return "";
+
+  // Match a month + day + year
+  const monthRegex = /\b(January|February|March|April|May|June|July|August|September|October|November|December|Jan\.|Feb\.|Mar\.|Apr\.|Aug\.|Sept\.|Oct\.|Nov\.|Dec\.)\s+(\d{1,2}),\s*(\d{4})/i;
+  const match = raw.match(monthRegex);
+  if (!match) return raw.trim();
+
+  const monthMap = {
+    January: "Jan.", February: "Feb.", March: "Mar.", April: "Apr.",
+    May: "May", June: "June", July: "July", August: "Aug.",
+    September: "Sept.", October: "Oct.", November: "Nov.", December: "Dec.",
+    "Jan.": "Jan.", "Feb.": "Feb.", "Mar.": "Mar.", "Apr.": "Apr.",
+    "Aug.": "Aug.", "Sept.": "Sept.", "Oct.": "Oct.", "Nov.": "Nov.", "Dec.": "Dec."
+  };
+
+  const month = monthMap[match[1]] || match[1];
+  const day = match[2];
+  const year = match[3];
+
+  return `${month} ${day}, ${year}`;
 }
 
 // -------------------------------
@@ -158,11 +181,11 @@ function extractFromLexis() {
     let txt = safeTrim(getVisibleText(el));
     if (/^(Case\s+No\.?|No\.)/i.test(txt)) {
       docket = normalizeDocket(txt);
-    } else if (/\b(19|20)\d{2}\b/.test(txt)) {
+    } else if (/\b(18|19|20)\d{2}\b/.test(txt)) {
       // Keep the entire string as full date (e.g., "Oct. 11, 2023")
-      const m = txt.match(/\b(19|20)\d{2}\b/);
+      const m = txt.match(/\b(18|19|20)\d{2}\b/);
       if (m) year = year || m[0];
-      fullDate = txt;
+      fullDate = normalizeFullDate(txt);
     } else if (txt) {
       txt = normalizeCourtName(txt);
       court = courtMap[txt] || court || txt;
@@ -201,13 +224,12 @@ function extractWestlaw() {
     court = courtMap[rawCourt] || rawCourt;
   }
 
-  const date = getVisibleText(
-    document.querySelector('.co_docHeader_date, .co_date')
-  );
+  const date = getVisibleText(document.querySelector('.co_docHeader_date, .co_date'));
   let year = "";
   const yearMatch = date.match(/\b(\d{4})\b/);
   if (yearMatch) year = yearMatch[1];
-  const fullDate = date || "";
+  const fullDate = normalizeFullDate(date);
+
 
   let docket = getVisibleText(
     document.querySelector('.co_docHeader_docket, .co_docket')
