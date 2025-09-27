@@ -1,3 +1,10 @@
+.copy-msg {
+  font-size: 11px;
+  color: green;
+  margin-left: 6px;
+  display: none;
+}
+
 .debug {
   margin-top: 12px;
   border-top: 1px solid #eee;

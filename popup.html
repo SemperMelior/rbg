@@ -8,19 +8,10 @@
       width: 350px;
       padding: 10px;
     }
-    h1 {
-      font-size: 18px;
-      margin-bottom: 8px;
-    }
-    h2 {
-      font-size: 14px;
-      margin-top: 15px;
-      margin-bottom: 5px;
-    }
-    p {
-      margin: 2px 0;
-      font-size: 13px;
-    }
+    h1 { font-size: 18px; margin-bottom: 8px; }
+    h2 { font-size: 14px; margin-top: 15px; margin-bottom: 5px; }
+    p  { margin: 2px 0; font-size: 13px; }
+    .hint { color:#666; font-size:11px; margin-left:6px; }
     .citation-box {
       border: 1px solid #ccc;
       padding: 6px;
@@ -29,12 +20,7 @@
       font-size: 13px;
       word-wrap: break-word;
     }
-    button {
-      margin-top: 5px;
-      margin-right: 5px;
-      padding: 4px 8px;
-      font-size: 12px;
-    }
+    button { margin-top: 5px; margin-right: 5px; padding: 4px 8px; font-size: 12px; }
   </style>
 </head>
 <body>
@@ -43,28 +29,38 @@
   <button id="generate">Generate Citation</button>
 
   <h2>Extracted Data</h2>
-<div id="extractedData">
-  <p><strong>Case Name:</strong> <input id="caseName" type="text"></p>
-  <p><strong>Volume:</strong> <input id="volume" type="text"></p>
-  <p><strong>Reporter:</strong> <input id="reporter" type="text"></p>
-  <p><strong>Page:</strong> <input id="page" type="text"></p>
-  <p><strong>Pinpoint:</strong> <input id="pinpoint" type="text"></p>
-  <p><strong>Court:</strong> <input id="court" type="text"></p>
-  <p><strong>Year:</strong> <input id="year" type="text"></p>
-  <p><strong>Docket:</strong> <input id="docket" type="text"></p>
-  <p><strong>Source URL:</strong> <input id="sourceUrl" type="text"></p>
-</div>
+  <div id="extractedData">
+    <p><strong>Case Name:</strong> <input id="caseName" type="text"></p>
+    <p><strong>Shortened Case Name:</strong> <input id="shortCaseName" type="text"></p>
 
+    <p><strong>Volume:</strong> <input id="volume" type="text"></p>
+    <p><strong>Reporter:</strong> <input id="reporter" type="text"></p>
+    <p><strong>Page / ID:</strong> <input id="page" type="text"></p>
+    <p><strong>Pinpoint:</strong> <input id="pinpoint" type="text"></p>
+
+    <p><strong>Court:</strong> <input id="court" type="text"></p>
+    <p><strong>Year:</strong> <input id="year" type="text"></p>
+
+    <p>
+      <strong>Full Date:</strong> <input id="fullDate" type="text" placeholder="e.g., Oct. 11, 2023">
+      <span class="hint">(used in parenthetical for unreported cases)</span>
+    </p>
+
+    <p><strong>Docket:</strong> <input id="docket" type="text"></p>
+    <p><strong>Source URL:</strong> <input id="sourceUrl" type="text"></p>
+  </div>
 
   <h2>Citations</h2>
   <div>
     <p><strong>Long Form:</strong></p>
     <div class="citation-box" id="longForm"></div>
     <button id="copyLong">Copy Long Form</button>
+    <span id="copyLongMsg" class="copy-msg"></span>
 
     <p><strong>Short Form:</strong></p>
     <div class="citation-box" id="shortForm"></div>
     <button id="copyShort">Copy Short Form</button>
+    <span id="copyShortMsg" class="copy-msg"></span>
   </div>
 
   <h2>Debug</h2>
