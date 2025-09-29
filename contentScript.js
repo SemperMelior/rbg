@@ -110,7 +110,8 @@ function normalizeFullDate(raw) {
 function parseCitation(raw) {
   if (!raw) return { volume: "", reporter: "", page: "", pinpoint: "", year: "" };
 
-  const citationRegex = /^(\d{4}|\d+)\s+([A-Za-z][A-Za-z0-9.\s\-]*?)\s+(\d+)(?:,\s*(\d+))?/;
+  const citationRegex = /^(\d{4}|\d+)\s+([A-Za-z][A-Za-z0-9.\s\-]*?(?:\s+\d+[a-z]{1,2})?)\s+(\d+)(?:,\s*(\d+))?/;
+
   const m = raw.match(citationRegex);
 
   if (m) {
@@ -159,7 +160,7 @@ function extractFromLexis() {
   let court = "", year = "", docket = "", fullDate = "";
 
   try {
-    const rptrEl = document.querySelector(".SS_ActiveRptr, .SS_Rptr");
+    const rptrEl = document.querySelector(".SS_ActiveRptr");
     if (rptrEl) {
       let raw = getVisibleText(rptrEl);
       raw = raw.replace(/\*\*/g, "").replace(/\u00A0/g, " ").trim();
@@ -296,25 +297,56 @@ function runExtraction(extractFunction) {
 // Observer (started after courtMap loads)
 // -------------------------------
 courtMapLoaded.then(() => {
-  console.log("[Bluebook Citer] Starting observer now that courtMap is ready");
+  console.log("[Bluebook Citer] Starting observers");
 
-  const observer = new MutationObserver(() => {
+  // 1. Broad observer: detect initial case type
+  const caseObserver = new MutationObserver(() => {
     if (document.querySelector("#SS_DocumentTitle")) {
       console.log("[Bluebook Citer] Lexis case detected");
       runExtraction(extractFromLexis);
+
+      // Attach targeted reporter observer (only once)
+      attachReporterObserver();
+      caseObserver.disconnect(); // stop watching whole DOM
     } else if (document.querySelector('#co_document_0')) {
       console.log("[Bluebook Citer] Westlaw case detected");
       runExtraction(extractWestlaw);
+      caseObserver.disconnect();
     }
   });
 
-  observer.observe(document.documentElement || document.body, {
+  caseObserver.observe(document.documentElement || document.body, {
     childList: true,
-    subtree: true,
-    attributes: true,
-    attributeFilter: ["class"]
+    subtree: true
   });
+
+  // 2. Targeted reporter observer (robust version)
+  function attachReporterObserver() {
+    const reporterObserver = new MutationObserver(() => {
+      const active = document.querySelector(".SS_ActiveRptr");
+      if (active) {
+        console.log("[Bluebook Citer] Active reporter changed to:", getVisibleText(active));
+        runExtraction(extractFromLexis);
+      }
+    });
+
+    // Watch every reporter tab for class changes
+    document.querySelectorAll(".SS_Rptr").forEach(el => {
+      reporterObserver.observe(el, {
+        attributes: true,
+        attributeFilter: ["class"]
+      });
+    });
+
+    // 🔹 Do one extraction immediately for whichever reporter is active on page load
+    const active = document.querySelector(".SS_ActiveRptr");
+    if (active) {
+      console.log("[Bluebook Citer] Initial active reporter found:", getVisibleText(active));
+      runExtraction(extractFromLexis);
+    }
+  }
 });
+
 
 // -------------------------------
 // Message listener
